@@ -1,0 +1,150 @@
+﻿<Window x:Class="JsonArrayEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:JsonArrayEditor"
+        Title="提示词数据编辑器" Height="600" Width="800" Icon="/wpsbox_sharefolder.ico">
+
+    <Window.Resources>
+        <local:TextLengthConverter x:Key="LenConv"/>
+        <DataTemplate x:Key="GroupTemplate">
+            <Border BorderBrush="Gray" BorderThickness="1" Margin="2,0" Padding="2,0">
+                <Grid Background="#888888">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="*"/>                        
+                        <RowDefinition Height="2"/>
+                        <!-- Splitter 自己的固定高 -->
+                        <RowDefinition Height="*"/>
+                        <!-- 必须再加一行用来“被挤” -->
+                    </Grid.RowDefinitions>
+
+                    <!-- 分组标题 -->
+                    <DockPanel Grid.Row="0" Background="#bbbbbb" >
+                        <TextBlock Text="{Binding Key}" FontWeight="Bold" FontSize="16" Margin="2" Padding="15,2"/>
+                        
+                        <Button Click="InsertTag_Click" Tag="{Binding}"
+        DockPanel.Dock="Right"  Margin="2" Padding="15,2">
+                            <Button.Content>
+                                <TextBlock>
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="插入{{{0}}}">
+                                            <Binding Path="Key"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </Button.Content>
+                        </Button>
+                        <Button Content="删除分组" Click="DelGroup_Click" Tag="{Binding}"
+        DockPanel.Dock="Right"  Margin="2" Padding="15,2"/>
+                        <!-- 上移 -->
+                        <Button Content="▲" Click="MoveGroupUp_Click" Tag="{Binding}"
+        DockPanel.Dock="Right" Margin="2" Padding="2" Width="30"/>
+                        <!-- 下移 -->
+                        <Button Content="▼" Click="MoveGroupDown_Click" Tag="{Binding}"
+        DockPanel.Dock="Right" Margin="2" Padding="2" Width="30"/>
+                        <!-- 新增一行 -->
+                        <Button Content="＋ 新增一项" HorizontalAlignment="Left"
+        Click="AddLine_Click" Tag="{Binding}" Margin="15,2" Padding="15,2"/>
+                    </DockPanel>
+
+                    <!-- 横向平铺的 Values -->
+                    <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto" Grid.Row="1"  Background="#bbb">
+                        <ListBox ItemsSource="{Binding Values}"
+         ScrollViewer.CanContentScroll="False"
+         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+         ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+         >
+                            <ListBox.ItemsPanel >
+                                <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" Background="#999999"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                                <DataTemplate >
+                                    <DockPanel LastChildFill="True"   >
+                                        <Button Content="{Binding Text, Converter={StaticResource LenConv}}"
+                                            Click="DelLine_Click" Tag="{Binding}"
+                                            DockPanel.Dock="Right" Width="Auto" MinWidth="30"  Margin="2,0" Padding="2,0"/>
+                                    <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                             BorderThickness="0" Background="Transparent"
+                                             MinWidth="30" MaxWidth="200" FontSize="18"  Margin="2,0" Padding="2,0"
+                                             HorizontalAlignment="Stretch" 
+                                             GotFocus="SmallTextBox_GotFocus" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                    <GridSplitter Grid.Row="2"
+                      
+                      HorizontalAlignment="Stretch"
+                      Background="Gray"
+                      ResizeDirection="Rows"
+                      ResizeBehavior="PreviousAndNext"
+                      Cursor="SizeNS"/>
+
+
+                    
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+
+    <DockPanel LastChildFill="True" Background="#999">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+            
+                <Button x:Name="BtnOpen" Content="打开" Click="BtnOpen_Click"/>
+                <Button x:Name="BtnSave" Content="保存" Click="BtnSave_Click"/>
+                <Button x:Name="BtnAddGroup" Content="新增分组" Click="BtnAddGroup_Click"/>
+            <Label x:Name="label_info" Width="700" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+
+        </StackPanel>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="7*" MinWidth="120"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="3*" MinWidth="120"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧：可拖高分组 -->
+            <!-- 左侧：可拖高分组 -->
+            <ScrollViewer Grid.Column="0"
+              x:Name="LeftScrollViewer"
+              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+              ScrollViewer.VerticalScrollBarVisibility="Auto"
+               >
+                <ItemsControl x:Name="ItemsHost"
+                  ItemTemplate="{StaticResource GroupTemplate}">
+                    <!-- ItemsPanel：每行一个分组，行高由 WrapPanel 撑开 -->
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- 分隔条 -->
+            <GridSplitter Grid.Column="1"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="Gray" 
+                          />
+
+            <!-- 右侧大编辑框 -->
+
+            <StackPanel Grid.Column="2" >
+                <Button x:Name="huitian" Content="回填" Margin="2" Padding="2" Click="TextBox_LostFocus"  BorderThickness="1"/>
+                <TextBox 
+                     x:Name="BigEditBox" 
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                    
+                     FontSize="18"
+                     KeyDown="BigEditBox_KeyDown" ToolTip="按“ctrl+enter”确定修改（返回左边的列表，并非保存）" />
+            </StackPanel>
+
+        </Grid>
+    </DockPanel>
+</Window>
